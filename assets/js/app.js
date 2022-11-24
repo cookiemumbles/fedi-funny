@@ -72,9 +72,7 @@ async function getCSVData () {
     // In this last filter, we remove invalid users.
     const isValid = ('account' in user) && user.account.trim() !== ''
     if (!isValid) {
-      console.error('Invalid line in CSV:', user)
-    } else {
-      console.log('successfully parsed:', user)
+      console.error('[Skipped] Invalid line in CSV:', user)
     }
     return isValid
   })
