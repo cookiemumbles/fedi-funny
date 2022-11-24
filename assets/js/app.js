@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
  */
 async function getCSVData () {
   // Fetch the CSV file
-  const response = await fetch('resources/anthropologists.csv')
+  const response = await fetch('resources/users.csv')
   // Retrieve the file contents as plain text
   const data = await response.text()
   // Parse them into a multi-dimensional array of objects. In our case:
@@ -73,6 +73,8 @@ async function getCSVData () {
     const isValid = ('account' in user) && user.account.trim() !== ''
     if (!isValid) {
       console.error('Invalid line in CSV:', user)
+    } else {
+      console.log('successfully parsed:', user)
     }
     return isValid
   })
@@ -125,41 +127,45 @@ function buildUserSelectionForm (users) {
     //   <a href="link">Link (without https)</a>
     // </div>
 
+    const handle = user.account
+    const splitAccount = handle.split("@")
+    const url = `https://${splitAccount[1]}/@${splitAccount[0]}`
+
+
     const wrapper = document.createElement('div')
     wrapper.classList.add('input-list-item')
 
     const input = document.createElement('input')
-    input.value = user.account
+    input.value = handle
     input.type = 'checkbox'
     input.name = 'selected_users'
-    input.setAttribute('id', user.account)
+    input.setAttribute('id', handle)
 
     wrapper.appendChild(input)
 
     const label = document.createElement('label')
-    label.setAttribute('for', user.account)
-    label.textContent = `${user.account} `
+    label.setAttribute('for', handle)
+    label.textContent = `${handle} `
 
     wrapper.appendChild(label)
 
-    if ('link' in user && user.link.trim() !== '') {
-      const nameLink = document.createElement('a')
-      nameLink.textContent = user.name
-      nameLink.setAttribute('href', user.link)
-      nameLink.setAttribute('target', '_blank')
-      wrapper.appendChild(nameLink)
-    }
 
-    const keywords = document.createElement('label')
-    keywords.textContent = ` : ${user.keywords} `
-    wrapper.appendChild(keywords)
+    const nameLink = document.createElement('a')
+    nameLink.textContent = url
+    nameLink.setAttribute('href', url)
+    nameLink.setAttribute('target', '_blank')
+    wrapper.appendChild(nameLink)
 
-    const new_line = document.createElement('br')
-    wrapper.appendChild(new_line)
+    // const keywords = document.createElement('label')
+    // keywords.textContent = ` : ${user.keywords} `
+    // wrapper.appendChild(keywords)
 
-    const intro = document.createElement('label')
-    intro.textContent = `${user.intro} `
-    wrapper.appendChild(intro)
+    // const new_line = document.createElement('br')
+    // wrapper.appendChild(new_line)
+
+    // const intro = document.createElement('label')
+    // intro.textContent = `${user.intro} `
+    // wrapper.appendChild(intro)
 
     container.appendChild(wrapper)
   }
