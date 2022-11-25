@@ -18,6 +18,10 @@ div#app {
   margin: 0 auto;
 }
 
+.avatar {
+  border-radius: 4px;
+  margin: 0 4px 0 4px;
+}
 /* This is the main form used to select users to generate a CSV from */
 form#main-form {
   margin-top: 10px;

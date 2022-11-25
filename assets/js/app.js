@@ -1,7 +1,8 @@
+import JRequest from './utils/JRequest.js';
 // CONSTANTS/CONFIG
 
 // The filename that will be suggested for the users when downloading
-const CSV_DOWNLOAD_NAME = 'my_account_list.csv'
+var CSV_DOWNLOAD_NAME = 'my_account_list.csv'
 
 // These functions return element(s) from the page. We put them here at the top
 // so that we can change the IDs if necessary
@@ -44,13 +45,13 @@ document.addEventListener('DOMContentLoaded', function () {
   // functions we need to call by looking at the available elements on the page.
   getCSVData()
   .then(function (data) {
-    if (formElement() !== null) {
+    // if (formElement() !== null) {
       // We're on the form page
-      buildUserSelectionForm(data)
-    } else {
-      // We're on the tootformat page
-      buildSimpleList(data)
-    }
+    buildUserSelectionForm(data)
+   // } else {
+   //    // We're on the tootformat page
+   //    buildSimpleList(data)
+   //  }
   })
 })
 
@@ -59,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function () {
  *  
  * @return  {Array<{ account: string, link: string, name: string }>}  A multi-dimensional array containing the parsed CSV file contents.
  */
-async function getCSVData () {
+async function getCSVData() {
   // Fetch the CSV file
   const response = await fetch('resources/users.csv')
   // Retrieve the file contents as plain text
@@ -109,7 +110,7 @@ function createFullCSV () {
  *
  * @param   {Array<{ account: string, link: string, name: string }>}  users  The parsed CSV data
  */
-function buildUserSelectionForm (users) {
+function buildUserSelectionForm(users) {
   const container = userListWrapper()
 
   if (container === null) {
@@ -127,32 +128,28 @@ function buildUserSelectionForm (users) {
 
     const handle = user.account
     const splitAccount = handle.split("@")
-    const url = `https://${splitAccount[1]}/@${splitAccount[0]}`
+    const serverName = splitAccount[1]
+    const userName = splitAccount[0]
+    const url = `https://${serverName}/@${userName}`
+    // https://mastodon.example/api/v1/accounts/lookup
+    JRequest
+      .get(`https://${serverName}/api/v1/accounts/lookup?acct=${userName}`)
+      .then(function (result) {
+        const jsonObj = JSON.parse(result)
+        // jsonObj['id']
+        // return JRequest
+        //   .get(`https://${serverName}/api/v1/accounts/${jsonObj['id']}`)
+        // https://ohai.social/api/v1/accounts/cookie_mumbles
+
+        // console.log(jsonObj['avatar'])
+        const item = addItem(handle, serverName, userName, jsonObj)
+
+        container.appendChild(item)
+      })
+
+    // https://ohai.social/api/v2/search?q=cookie_mumbles&resolve=true&limit=1
 
 
-    const wrapper = document.createElement('div')
-    wrapper.classList.add('input-list-item')
-
-    const input = document.createElement('input')
-    input.value = handle
-    input.type = 'checkbox'
-    input.name = 'selected_users'
-    input.setAttribute('id', handle)
-
-    wrapper.appendChild(input)
-
-    const label = document.createElement('label')
-    label.setAttribute('for', handle)
-    label.textContent = `${handle} `
-
-    wrapper.appendChild(label)
-
-
-    const nameLink = document.createElement('a')
-    nameLink.textContent = url
-    nameLink.setAttribute('href', url)
-    nameLink.setAttribute('target', '_blank')
-    wrapper.appendChild(nameLink)
 
     // const keywords = document.createElement('label')
     // keywords.textContent = ` : ${user.keywords} `
@@ -165,8 +162,42 @@ function buildUserSelectionForm (users) {
     // intro.textContent = `${user.intro} `
     // wrapper.appendChild(intro)
 
-    container.appendChild(wrapper)
   }
+}
+
+function addItem(handle, serverName, userName, dataObj) {
+  const containerDiv = document.createElement('div')
+  containerDiv.classList.add('input-list-item')
+
+  // create checkbox
+  const checkbox = document.createElement('input')
+  checkbox.value = handle
+  checkbox.type = 'checkbox'
+  checkbox.name = 'selected_users'
+  checkbox.setAttribute('id', handle)
+  containerDiv.appendChild(checkbox)
+
+  // profile link
+  const profileLink = document.createElement('a')
+  // profileLink.textContent = `https://${serverName}/@${userName}`
+  profileLink.setAttribute('href', `https://${serverName}/@${userName}`)
+  profileLink.setAttribute('target', '_blank')
+
+  const img = document.createElement('img')
+  img.setAttribute('class', 'avatar')
+  img.setAttribute('src', dataObj['avatar'])
+  img.setAttribute('width', '46px')
+  img.setAttribute('height', '46px')
+  profileLink.appendChild(img)
+  containerDiv.appendChild(profileLink)
+
+  // @user@example.social
+  const nameLabel = document.createElement('label')
+  nameLabel.setAttribute('for', handle)
+  nameLabel.textContent = `${handle} `
+  containerDiv.appendChild(nameLabel)
+
+  return containerDiv
 }
 
 /**
